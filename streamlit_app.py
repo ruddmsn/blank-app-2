@@ -1,27 +1,37 @@
 import streamlit as st
 
 # -----------------------------
-# Perfume Palette 앱 (객관식 키워드 + 가격 범위 추천)
+# Perfume Palette App (max 10 recommendations)
 # -----------------------------
 
 st.set_page_config(page_title="Perfume Palette", page_icon="🌸", layout="centered")
 st.title("🌸 Perfume Palette")
+st.caption("Select your preferred scent keywords and price range to get up to 10 recommended perfumes.")
+
 # -----------------------------
-# 샘플 향수 데이터 (가격 단위: 원)
+# Sample perfume data with buy links
 # -----------------------------
 perfumes = [
-    {"name": "Jo Malone Peony & Blush Suede", "notes": ["꽃", "로맨틱"], "price": 180000},
-    {"name": "Chanel No.5", "notes": ["클래식", "우아"], "price": 250000},
-    {"name": "Dior Sauvage", "notes": ["시트러스", "상쾌"], "price": 150000},
-    {"name": "Gucci Bloom", "notes": ["꽃", "여성스러움"], "price": 170000},
-    {"name": "CK One", "notes": ["시트러스", "유니섹스"], "price": 70000},
-    {"name": "Davidoff Cool Water", "notes": ["상쾌", "청량"], "price": 60000},
-    {"name": "Maison Margiela Replica Jazz Club", "notes": ["우디", "스모키"], "price": 160000},
-    {"name": "Tom Ford Black Orchid", "notes": ["관능적", "강렬"], "price": 230000},
+    {"name": "Jo Malone Peony & Blush Suede", "notes": ["Floral (꽃)", "Romantic (로맨틱)"], "price": 180000,
+     "link": "https://www.jomalone.com/product/12345/peony-blush-suede-cologne"},
+    {"name": "Chanel No.5", "notes": ["Classic (클래식)", "Elegant (우아)"], "price": 250000,
+     "link": "https://www.chanel.com/product/12345/no5"},
+    {"name": "Dior Sauvage", "notes": ["Citrus (시트러스)", "Fresh (상쾌)"], "price": 150000,
+     "link": "https://www.dior.com/product/12345/sauvage"},
+    {"name": "Gucci Bloom", "notes": ["Floral (꽃)", "Feminine (여성스러움)"], "price": 170000,
+     "link": "https://www.gucci.com/product/12345/bloom"},
+    {"name": "CK One", "notes": ["Citrus (시트러스)", "Unisex (유니섹스)"], "price": 70000,
+     "link": "https://www.calvinklein.com/product/12345/ckone"},
+    {"name": "Davidoff Cool Water", "notes": ["Fresh (상쾌)", "Aqua (청량)"], "price": 60000,
+     "link": "https://www.davidoff.com/product/12345/cool-water"},
+    {"name": "Maison Margiela Replica Jazz Club", "notes": ["Woody (우디)", "Smoky (스모키)"], "price": 160000,
+     "link": "https://www.maisonmargiela.com/product/12345/jazz-club"},
+    {"name": "Tom Ford Black Orchid", "notes": ["Sensual (관능적)", "Intense (강렬)"], "price": 230000,
+     "link": "https://www.tomford.com/product/12345/black-orchid"},
 ]
 
 # -----------------------------
-# 세션 상태 초기화
+# Session state initialization
 # -----------------------------
 if "submitted" not in st.session_state:
     st.session_state.submitted = False
@@ -29,45 +39,45 @@ if "results" not in st.session_state:
     st.session_state.results = []
 
 # -----------------------------
-# 1. 향 키워드 선택 (체크박스 멀티셀렉트)
+# 1. Scent keyword selection (multi-select)
 # -----------------------------
-st.subheader("🔹 원하는 향 키워드 선택 (여러 개 선택 가능)")
+st.subheader("🔹 Select preferred scent keywords (English with Korean)")
 all_notes = sorted({note for p in perfumes for note in p["notes"]})
-selected_notes = st.multiselect("향 키워드", options=all_notes)
+selected_notes = st.multiselect("Scent Keywords", options=all_notes)
 
 # -----------------------------
-# 2. 가격 범위 입력
+# 2. Price range input
 # -----------------------------
-st.subheader("🔹 가격 범위 입력 (원)")
+st.subheader("🔹 Price Range (KRW)")
 col1, col2 = st.columns(2)
 with col1:
-    min_price = st.number_input("최소 가격", min_value=0, value=0, step=1000)
+    min_price = st.number_input("Minimum Price", min_value=0, value=0, step=1000)
 with col2:
-    max_price = st.number_input("최대 가격", min_value=0, value=300000, step=1000)
+    max_price = st.number_input("Maximum Price", min_value=0, value=300000, step=1000)
 
 # -----------------------------
-# 추천 로직
+# Recommendation logic
 # -----------------------------
-def recommend_perfumes(notes, min_p, max_p, limit=3):
+def recommend_perfumes(notes, min_p, max_p, limit=10):  # 최대 10개로 변경
     if not notes:
         return []
     filtered = [p for p in perfumes if any(n in p["notes"] for n in notes) and min_p <= p["price"] <= max_p]
     return filtered[:limit]
 
 # -----------------------------
-# 버튼 처리
+# Buttons
 # -----------------------------
-if st.button("결과 보기"):
+if st.button("Show Recommendations"):
     if not selected_notes:
-        st.warning("향 키워드를 최소 1개 선택해주세요!")
+        st.warning("Please select at least one scent keyword!")
     elif min_price > max_price:
-        st.warning("최소 가격이 최대 가격보다 클 수 없습니다!")
+        st.warning("Minimum price cannot exceed maximum price!")
     else:
         results = recommend_perfumes(selected_notes, min_price, max_price)
         st.session_state.results = results
         st.session_state.submitted = True
 
-if st.button("다시 하기"):
+if st.button("Reset"):
     st.session_state.submitted = False
     st.session_state.results = []
     selected_notes = []
@@ -75,16 +85,16 @@ if st.button("다시 하기"):
     max_price = 300000
 
 # -----------------------------
-# 결과 출력
+# Result display
 # -----------------------------
 st.markdown("---")
-st.subheader("💎 추천 향수 결과")
+st.subheader("💎 Recommended Perfumes")
 
 if st.session_state.submitted:
     if st.session_state.results:
         for p in st.session_state.results:
-            st.write(f"- {p['name']} ({', '.join(p['notes'])}) [{p['price']:,}원]")
+            st.markdown(f"- **{p['name']}** ({', '.join(p['notes'])}) [{p['price']:,} KRW] - [Buy Here]({p['link']})")
     else:
-        st.info("해당 조건에 맞는 향수를 찾을 수 없습니다. 다른 키워드나 가격 범위를 선택해보세요!")
+        st.info("No perfumes match your selected keywords and price range. Try different options!")
 else:
-    st.write("향 키워드와 가격 범위를 선택하고 '결과 보기' 버튼을 눌러주세요.")
+    st.write("Select scent keywords and price range, then click 'Show Recommendations'.")
